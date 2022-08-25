@@ -2,6 +2,7 @@
 import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
+import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { Shopify, LATEST_API_VERSION } from "@shopify/shopify-api";
 
@@ -12,7 +13,7 @@ import productCreator from "./helpers/product-creator.js";
 import redirectToAuth from "./helpers/redirect-to-auth.js";
 import { BillingInterval } from "./helpers/ensure-billing.js";
 import { AppInstallations } from "./app_installations.js";
-
+dotenv.config();
 const USE_ONLINE_TOKENS = false;
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
@@ -24,11 +25,11 @@ const PROD_INDEX_PATH = `${process.cwd()}/frontend/dist/`;
 const DB_PATH = `${process.cwd()}/database.sqlite`;
 
 Shopify.Context.initialize({
-  API_KEY: process.env.SHOPIFY_API_KEY,
-  API_SECRET_KEY: process.env.SHOPIFY_API_SECRET,
-  SCOPES: process.env.SCOPES.split(","),
-  HOST_NAME: process.env.HOST.replace(/https?:\/\//, ""),
-  HOST_SCHEME: process.env.HOST.split("://")[0],
+  API_KEY: process.env.SHOPIFY_API_KEY || "",
+  API_SECRET_KEY: process.env.SHOPIFY_API_SECRET || "",
+  SCOPES: process.env.SCOPES?.split(",") || [],
+  HOST_NAME: process.env.HOST?.replace(/https?:\/\//, "") || "",
+  HOST_SCHEME: process.env.HOST?.split("://")[0],
   API_VERSION: LATEST_API_VERSION,
   IS_EMBEDDED_APP: true,
   // This should be replaced with your preferred storage strategy
@@ -136,6 +137,30 @@ export async function createServer(
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
+
+  app.get("/api/store/email", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+    let data = {};
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+    try {
+      data = await client.get({
+        path: 'shop',
+        query: {fields: "email"}
+      });
+      
+    } catch (e) {
+      console.log(`Failed to process shop/get: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ data, success: status === 200, error });
+  });
 
   app.use((req, res, next) => {
     const shop = Shopify.Utils.sanitizeShop(req.query.shop);

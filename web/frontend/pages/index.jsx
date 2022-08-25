@@ -13,11 +13,12 @@ import { TitleBar } from "@shopify/app-bridge-react";
 import { trophyImage } from "../assets";
 
 import { ProductsCard } from "../components";
+import { GetEmailButton } from "../components/GetEmailButton";
 
 export default function HomePage() {
   return (
     <Page narrowWidth>
-      <TitleBar title="App name" primaryAction={null} />
+      <TitleBar title="Shopify App" primaryAction={null} />
       <Layout>
         <Layout.Section>
           <Card sectioned>
@@ -65,20 +66,13 @@ export default function HomePage() {
                   </p>
                 </TextContainer>
               </Stack.Item>
-              <Stack.Item>
-                <div style={{ padding: "0 20px" }}>
-                  <Image
-                    source={trophyImage}
-                    alt="Nice work on building a Shopify app"
-                    width={120}
-                  />
-                </div>
+            </Stack>
+            <Stack>
+              <Stack.Item fill>
+                <GetEmailButton />
               </Stack.Item>
             </Stack>
           </Card>
-        </Layout.Section>
-        <Layout.Section>
-          <ProductsCard />
         </Layout.Section>
       </Layout>
     </Page>
