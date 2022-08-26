@@ -40,7 +40,7 @@ export function GetEmailButton() {
       {toastMarkup}
       <ButtonContainer>
         <FlexItem>
-          <Button onClick={handleGetEmail} loading={isLoading} disabled={isLoading}>Get Store Email</Button>
+          <Button onClick={handleGetEmail} loading={isLoading} disabled={isLoading} fullWidth>Get Store Email</Button>
         </FlexItem>
         <FlexItem>
           {email}

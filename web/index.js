@@ -4,7 +4,7 @@ import { readFileSync } from "fs";
 import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
-import { Shopify, LATEST_API_VERSION } from "@shopify/shopify-api";
+import { Shopify, LATEST_API_VERSION, DataType } from "@shopify/shopify-api";
 
 import applyAuthMiddleware from "./middleware/auth.js";
 import verifyRequest from "./middleware/verify-request.js";
@@ -16,7 +16,7 @@ import { AppInstallations } from "./app_installations.js";
 dotenv.config();
 const USE_ONLINE_TOKENS = false;
 
-const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT, 10);
+const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "5000", 10);
 
 // TODO: There should be provided by env vars
 const DEV_INDEX_PATH = `${process.cwd()}/frontend/`;
@@ -115,25 +115,6 @@ export async function createServer(
     res.status(200).send(countData);
   });
 
-  app.get("/api/products/create", async (req, res) => {
-    const session = await Shopify.Utils.loadCurrentSession(
-      req,
-      res,
-      app.get("use-online-tokens")
-    );
-    let status = 200;
-    let error = null;
-
-    try {
-      await productCreator(session);
-    } catch (e) {
-      console.log(`Failed to process products/create: ${e.message}`);
-      status = 500;
-      error = e.message;
-    }
-    res.status(status).send({ success: status === 200, error });
-  });
-
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
@@ -151,9 +132,9 @@ export async function createServer(
     try {
       data = await client.get({
         path: 'shop',
-        query: {fields: "email"}
+        query: { fields: "email" }
       });
-      
+
     } catch (e) {
       console.log(`Failed to process shop/get: ${e.message}`);
       status = 500;
@@ -162,8 +143,60 @@ export async function createServer(
     res.status(status).send({ data, success: status === 200, error });
   });
 
+  app.post("/api/products/create", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+    let response = {};
+    let product = {
+      title: req.body?.productTitle || "",
+      body_html: req.body?.productDescription || "",
+      product_type: req.body?.productType || "",
+      vendor: "Admin",
+      tags: ""
+    };
+
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+    try {
+      response = await client.post({
+        path: 'products',
+        data: { product },
+        type: DataType.JSON
+      });
+
+    } catch (e) {
+      console.log(`Failed to process products/post: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ response, success: status === 200, error });
+  });
+
+  app.put("/api/products/update", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+
+    try {
+      await productCreator(session);
+    } catch (e) {
+      console.log(`Failed to process products/update: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ success: status === 200, error });
+  });
+
   app.use((req, res, next) => {
-    const shop = Shopify.Utils.sanitizeShop(req.query.shop);
+    const shop = Shopify.Utils.sanitizeShop(req.query?.shop);
     if (Shopify.Context.IS_EMBEDDED_APP && shop) {
       res.setHeader(
         "Content-Security-Policy",

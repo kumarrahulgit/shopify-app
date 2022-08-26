@@ -12,7 +12,7 @@ import { TitleBar } from "@shopify/app-bridge-react";
 
 import { trophyImage } from "../assets";
 
-import { ProductsCard } from "../components";
+import { CreateProductButton, ProductsCard } from "../components";
 import { GetEmailButton } from "../components/GetEmailButton";
 
 export default function HomePage() {
@@ -70,6 +70,11 @@ export default function HomePage() {
             <Stack>
               <Stack.Item fill>
                 <GetEmailButton />
+              </Stack.Item>
+            </Stack>
+            <Stack>
+              <Stack.Item fill>
+                <CreateProductButton />
               </Stack.Item>
             </Stack>
           </Card>
