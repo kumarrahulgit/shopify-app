@@ -143,6 +143,28 @@ export async function createServer(
     res.status(status).send({ data, success: status === 200, error });
   });
 
+  app.get("/api/products", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+    let data = {};
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+    try {
+      data = await client.get({
+        path: 'products'
+      });
+    } catch (e) {
+      console.log(`Failed to process products/get: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ data, success: status === 200, error });
+  });
+
   app.post("/api/products/create", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -176,7 +198,7 @@ export async function createServer(
     res.status(status).send({ response, success: status === 200, error });
   });
 
-  app.put("/api/products/update", async (req, res) => {
+  app.put("/api/products/update/:id", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
       res,
@@ -184,15 +206,29 @@ export async function createServer(
     );
     let status = 200;
     let error = null;
+    let response = {};
+    let product = {
+      title: req.body?.productTitle || "",
+      body_html: req.body?.productDescription || "",
+      product_type: req.body?.productType || "",
+      vendor: "Admin",
+      tags: ""
+    };
 
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
     try {
-      await productCreator(session);
+      response = await client.put({
+        path: `products/${req.params.id}`,
+        data: { product },
+        type: DataType.JSON
+      });
+
     } catch (e) {
-      console.log(`Failed to process products/update: ${e.message}`);
+      console.log(`Failed to process products/post: ${e.message}`);
       status = 500;
       error = e.message;
     }
-    res.status(status).send({ success: status === 200, error });
+    res.status(status).send({ response, success: status === 200, error });
   });
 
   app.use((req, res, next) => {

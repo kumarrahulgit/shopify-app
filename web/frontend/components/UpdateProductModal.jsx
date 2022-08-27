@@ -1,17 +1,9 @@
-import { useState, useCallback } from "react";
-import { Button, Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Thumbnail, Caption } from "@shopify/polaris";
+import { useState, useCallback, useEffect } from "react";
 import styled from 'styled-components';
+import { Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Caption } from "@shopify/polaris";
 import { NoteMinor } from '@shopify/polaris-icons';
 import { Toast } from "@shopify/app-bridge-react";
 import { useAuthenticatedFetch } from "../hooks";
-
-const ButtonContainer = styled.div`
-  width: 100%;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-`
 
 const ImageUploadContainer = styled.div`
   width: min(25%, 125px);
@@ -29,16 +21,13 @@ const UploadedImage = styled.img`
   margin: 0 auto;
 `
 
-const FlexItem = styled.div`
-  flex-basis: 50%;
-`
 const ErrorDiv = styled.div`
   color: red;
 `
 
-export function CreateProductButton() {
+export function UpdateProductModal(props) {
   const emptyToastProps = { content: null };
-  const [active, setActive] = useState(false);
+  const [active, setActive] = useState(true);
   const [productTitle, setProductTitle] = useState("");
   const [productType, setProductType] = useState("");
   const [productDescription, setProductDescription] = useState("");
@@ -58,8 +47,9 @@ export function CreateProductButton() {
     setIsSubmitting(true);
     if(productTitle && productType) {
       setIsFormValid(true);
-      fetch("/api/products/create", {
-        method: "POST",
+      const productId = props?.product?.id;
+      fetch(`/api/products/update/${productId}`, {
+        method: "PUT",
         body: JSON.stringify({
           productTitle,
           productType,
@@ -74,7 +64,7 @@ export function CreateProductButton() {
           toggleActive();
         }
       }).catch((err) => {
-        setToastProps({content: "Error creating product"});
+        setToastProps({content: "Error updating product"});
         setIsSubmitting(false);
       });
     } else {
@@ -90,6 +80,16 @@ export function CreateProductButton() {
       setProductImage((file) => acceptedFiles[0]),
     []
   );
+
+    useEffect(() => {
+        if(props?.product) {
+            console.log(props.product);
+            setProductTitle(props.product?.title || "");
+            setProductType(props.product.product_type || "");
+            setProductDescription(props.product?.body_html || "");
+        }
+    },[])
+
   const imageUpload = !productImage && <DropZone.FileUpload />;
   const uploadedImage = productImage && (
     <Stack>
@@ -111,7 +111,7 @@ export function CreateProductButton() {
       <ErrorDiv>
         {!productTitle ? <p>Product title is required</p> : null}
         {!productType ? <p>Product type is required</p> : null}
-        {!isProductCreated ? <p>Error creating product</p> : null}
+        {!isProductUpdated ? <p>Error creating product</p> : null}
       </ErrorDiv>
     </Stack>
   );
@@ -119,20 +119,13 @@ export function CreateProductButton() {
   return (
     <div>
       {toastMarkup}
-      <ButtonContainer>
-        <FlexItem>
-          <Button onClick={toggleActive} fullWidth>Create Product</Button>
-        </FlexItem>
-        <FlexItem>
-        </FlexItem>
-      </ButtonContainer>
       <Modal
         large
         open={active}
         onClose={toggleActive}
-        title="Create Product"
+        title="Update Product"
         primaryAction={{
-          content: 'Create Product',
+          content: 'Update Product',
           onAction: handleSubmit,
           loading: isSubmitting
         }}
@@ -140,7 +133,7 @@ export function CreateProductButton() {
           {
             content: 'Cancel',
             onAction: toggleActive
-          },
+          }
         ]}
       >
         <Modal.Section>

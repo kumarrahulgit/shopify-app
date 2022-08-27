@@ -10,10 +10,11 @@ import {
 } from "@shopify/polaris";
 import { TitleBar } from "@shopify/app-bridge-react";
 
-import { trophyImage } from "../assets";
+import { TrophyImage } from "../assets";
 
 import { CreateProductButton, ProductsCard } from "../components";
 import { GetEmailButton } from "../components/GetEmailButton";
+import ProductPicker from "../components/ProductPicker";
 
 export default function HomePage() {
   return (
@@ -75,6 +76,11 @@ export default function HomePage() {
             <Stack>
               <Stack.Item fill>
                 <CreateProductButton />
+              </Stack.Item>
+            </Stack>
+            <Stack>
+              <Stack.Item fill>
+                <ProductPicker />
               </Stack.Item>
             </Stack>
           </Card>
