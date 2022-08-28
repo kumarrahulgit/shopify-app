@@ -11,6 +11,7 @@ import { TitleBar } from "@shopify/app-bridge-react";
 import { CreateProductButton } from "../components";
 import { GetEmailButton } from "../components/GetEmailButton";
 import ProductPicker from "../components/ProductPicker";
+import ProductVariantsPicker from "../components/ProductVariantsPicker";
 
 const Paragraph = styled.p`
   margin: 1rem auto;
@@ -52,6 +53,11 @@ export default function HomePage() {
             <Stack>
               <Stack.Item fill>
                 <ProductPicker />
+              </Stack.Item>
+            </Stack>
+            <Stack>
+              <Stack.Item fill>
+                <ProductVariantsPicker />
               </Stack.Item>
             </Stack>
           </Card>

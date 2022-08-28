@@ -22,6 +22,7 @@ const FlexItem = styled.div`
 `
 const ProductCard = styled.div`
   padding: 0.5rem;
+  border: 1px solid mediumseagreen;
   border-radius: 5px;
   margin: 0.25rem;
   display: flex;

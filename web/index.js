@@ -255,6 +255,64 @@ export async function createServer(
     res.status(status).send({ response, success: status === 200, error });
   });
 
+  app.post("/api/products/:productId/variants/create", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+    let response = {};
+    let variant = {
+      option1: req.body?.option1 || "",
+      price: req.body?.price || 0
+    };
+
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+    try {
+      response = await client.post({
+        path: `products/${req.params.productId}/variants`,
+        data: { variant },
+        type: DataType.JSON
+      });
+    } catch (e) {
+      console.log(`Failed to process products/variants/post: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ response, success: status === 200, error });
+  });
+
+  app.put("/api/products/variants/update/:variantId", async (req, res) => {
+    const session = await Shopify.Utils.loadCurrentSession(
+      req,
+      res,
+      app.get("use-online-tokens")
+    );
+    let status = 200;
+    let error = null;
+    let response = {};
+    let variant = {
+      option1: req.body?.option1 || "",
+      price: req.body?.price || 0
+    };
+
+    const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+    try {
+      response = await client.put({
+        path: `variants/${req.params.variantId}`,
+        data: { variant },
+        type: DataType.JSON
+      });
+    } catch (e) {
+      console.log(`Failed to process products/variants/put: ${e.message}`);
+      status = 500;
+      error = e.message;
+    }
+    res.status(status).send({ response, success: status === 200, error });
+  });
+
   app.use((req, res, next) => {
     const shop = Shopify.Utils.sanitizeShop(req.query?.shop);
     if (Shopify.Context.IS_EMBEDDED_APP && shop) {
