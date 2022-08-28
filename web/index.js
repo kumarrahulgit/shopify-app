@@ -5,7 +5,6 @@ import express from "express";
 import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
 import { Shopify, LATEST_API_VERSION, DataType } from "@shopify/shopify-api";
-
 import applyAuthMiddleware from "./middleware/auth.js";
 import verifyRequest from "./middleware/verify-request.js";
 import { setupGDPRWebHooks } from "./gdpr.js";
@@ -118,6 +117,7 @@ export async function createServer(
   // All endpoints after this point will have access to a request.body
   // attribute, as a result of the express.json() middleware
   app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
 
   app.get("/api/store/email", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
@@ -190,6 +190,14 @@ export async function createServer(
         type: DataType.JSON
       });
 
+      if (req.body?.productImage) {
+        await client.post({
+          path: `products/${response?.body?.product?.id}/images`,
+          data: { image: { attachment: req.body.productImage, filename: req.body.imageName } },
+          type: DataType.JSON
+        });
+      }
+
     } catch (e) {
       console.log(`Failed to process products/post: ${e.message}`);
       status = 500;
@@ -222,6 +230,22 @@ export async function createServer(
         data: { product },
         type: DataType.JSON
       });
+
+      if (req.body?.productImage) {
+        if (req.body?.imageId) {
+          await client.put({
+            path: `products/${response?.body?.product?.id}/images/${req.body?.imageId}`,
+            data: { image: { attachment: req.body.productImage, filename: req.body.imageName } },
+            type: DataType.JSON
+          });
+        } else {
+          await client.post({
+            path: `products/${response?.body?.product?.id}/images`,
+            data: { image: { attachment: req.body.productImage, filename: req.body.imageName } },
+            type: DataType.JSON
+          });
+        }
+      }
 
     } catch (e) {
       console.log(`Failed to process products/post: ${e.message}`);

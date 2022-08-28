@@ -14,6 +14,7 @@ const ButtonContainer = styled.div`
 
 const FlexItem = styled.div`
   flex-basis: 50%;
+  margin-bottom: 0.25rem;
 `
 
 export function GetEmailButton() {

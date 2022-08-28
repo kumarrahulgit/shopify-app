@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { Button, Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Thumbnail, Caption } from "@shopify/polaris";
+import { Button, Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Caption } from "@shopify/polaris";
 import styled from 'styled-components';
 import { NoteMinor } from '@shopify/polaris-icons';
 import { Toast } from "@shopify/app-bridge-react";
@@ -31,6 +31,7 @@ const UploadedImage = styled.img`
 
 const FlexItem = styled.div`
   flex-basis: 50%;
+  margin-bottom: 0.25rem;
 `
 const ErrorDiv = styled.div`
   color: red;
@@ -42,7 +43,7 @@ export function CreateProductButton() {
   const [productTitle, setProductTitle] = useState("");
   const [productType, setProductType] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [productImage, setProductImage] = useState();
+  const [productImage, setProductImage] = useState(null);
   const [isFormValid, setIsFormValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastProps, setToastProps] = useState(emptyToastProps);
@@ -53,28 +54,49 @@ export function CreateProductButton() {
   const toastMarkup = toastProps.content && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
+  const getBase64 = async (file) => {
+    let reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.readAsDataURL(file);
+      reader.onload = function () {
+        resolve(reader.result);
+      };
+      reader.onerror = function (error) {
+        console.log('Error: ', error);
+        reject(error);
+      };
+    });
+  }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    if(productTitle && productType) {
+    let imageBase64 = "";
+
+    if(productImage) {
+      imageBase64 = await getBase64(productImage);
+    }
+
+    if (productTitle && productType) {
       setIsFormValid(true);
       fetch("/api/products/create", {
         method: "POST",
         body: JSON.stringify({
           productTitle,
           productType,
-          productDescription
+          productDescription,
+          productImage: imageBase64 ? imageBase64.split("base64,")[1] : null,
+          imageName: productImage ? productImage.name : null
         }),
         headers: {
           'Content-Type': 'application/json'
         }
-      }).then(res => res.json()).then(({response}) => {
+      }).then(res => res.json()).then(({ response }) => {
         setIsSubmitting(false);
-        if(response?.body?.product) {
+        if (response?.body?.product) {
           toggleActive();
         }
       }).catch((err) => {
-        setToastProps({content: "Error creating product"});
+        setToastProps({ content: "Error creating product" });
         setIsSubmitting(false);
       });
     } else {
@@ -111,7 +133,6 @@ export function CreateProductButton() {
       <ErrorDiv>
         {!productTitle ? <p>Product title is required</p> : null}
         {!productType ? <p>Product type is required</p> : null}
-        {!isProductCreated ? <p>Error creating product</p> : null}
       </ErrorDiv>
     </Stack>
   );

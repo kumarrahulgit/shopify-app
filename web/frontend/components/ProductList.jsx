@@ -1,10 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuthenticatedFetch } from "../hooks";
 import styled from 'styled-components';
+import { ImageMajor } from '@shopify/polaris-icons';
 import {
   Spinner,
   Modal,
-  Card,
   RadioButton
 } from '@shopify/polaris';
 
@@ -20,6 +20,20 @@ const FlexItem = styled.div`
   text-align: center;
   padding: 5rem;
 `
+const ProductCard = styled.div`
+  padding: 0.5rem;
+  border-radius: 5px;
+  margin: 0.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+`
+
+const ProductCardImage = styled.img`
+  display: block;
+  max-width: 100px;
+  height: auto;
+`
 
 export function ProductList(props) {
   const fetch = useAuthenticatedFetch();
@@ -34,7 +48,7 @@ export function ProductList(props) {
       setIsLoading(false);
       setItems(data?.body?.products || []);
     });
-  }, []);
+  }, [props?.open]);
 
   const handleChange = useCallback(
     (_checked, newValue) => setValue(newValue),
@@ -73,16 +87,21 @@ export function ProductList(props) {
           </Container>
         )
         : (<>
-          {items.map((item) => (<Card key={item.id}>
-            <RadioButton
-              checked={value === item.id}
-              onChange={handleChange}
-              id={item.id}
-              name="products"
-              label={item.title}
-              helpText={item.product_type}
-            />
-          </Card>))}
+          {items.map((item) => (<ProductCard key={item.id}>
+            <div>
+              <RadioButton
+                checked={value === item.id}
+                onChange={handleChange}
+                id={item.id}
+                name="products"
+                label={item.title}
+                helpText={item.product_type}
+              />
+            </div>
+            <div>
+              <ProductCardImage src={item?.images[0]?.src || ImageMajor} alt="" />
+            </div>
+          </ProductCard>))}
         </>)
       }
     </Modal>

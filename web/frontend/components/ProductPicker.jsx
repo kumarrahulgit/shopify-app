@@ -14,6 +14,7 @@ const ButtonContainer = styled.div`
 
 const FlexItem = styled.div`
   flex-basis: 50%;
+  margin-bottom: 0.25rem;
 `
 
 export default function ProductPicker() {
@@ -39,7 +40,7 @@ export default function ProductPicker() {
     <div>
       <ButtonContainer>
         <FlexItem>
-          <Button onClick={handleClick} fullWidth>Select a product</Button>
+          <Button onClick={handleClick} fullWidth>Update Product</Button>
         </FlexItem>
         <FlexItem>
         </FlexItem>

@@ -9,9 +9,10 @@ const ImageUploadContainer = styled.div`
   width: min(25%, 125px);
   height: min(25%, 125px);
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
   margin: 0 auto;
+  flex-direction: column;
 `
 
 const UploadedImage = styled.img`
@@ -31,7 +32,7 @@ export function UpdateProductModal(props) {
   const [productTitle, setProductTitle] = useState("");
   const [productType, setProductType] = useState("");
   const [productDescription, setProductDescription] = useState("");
-  const [productImage, setProductImage] = useState();
+  const [productImage, setProductImage] = useState(null);
   const [isFormValid, setIsFormValid] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastProps, setToastProps] = useState(emptyToastProps);
@@ -42,10 +43,29 @@ export function UpdateProductModal(props) {
   const toastMarkup = toastProps.content && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
+  const getBase64 = async (file) => {
+    let reader = new FileReader();
+    return new Promise((resolve, reject) => {
+      reader.readAsDataURL(file);
+      reader.onload = function () {
+        resolve(reader.result);
+      };
+      reader.onerror = function (error) {
+        console.log('Error: ', error);
+        reject(error);
+      };
+    });
+  }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setIsSubmitting(true);
-    if(productTitle && productType) {
+    let imageBase64 = "";
+
+    if (productImage) {
+      imageBase64 = await getBase64(productImage);
+    }
+
+    if (productTitle && productType) {
       setIsFormValid(true);
       const productId = props?.product?.id;
       fetch(`/api/products/update/${productId}`, {
@@ -53,18 +73,21 @@ export function UpdateProductModal(props) {
         body: JSON.stringify({
           productTitle,
           productType,
-          productDescription
+          productDescription,
+          productImage: imageBase64 ? imageBase64.split("base64,")[1] : null,
+          imageName: productImage ? productImage.name : null,
+          imageId: props?.product?.images[0].id
         }),
         headers: {
           'Content-Type': 'application/json'
         }
-      }).then(res => res.json()).then(({response}) => {
+      }).then(res => res.json()).then(({ response }) => {
         setIsSubmitting(false);
-        if(response?.body?.product) {
+        if (response?.body?.product) {
           toggleActive();
         }
       }).catch((err) => {
-        setToastProps({content: "Error updating product"});
+        setToastProps({ content: "Error updating product" });
         setIsSubmitting(false);
       });
     } else {
@@ -81,18 +104,18 @@ export function UpdateProductModal(props) {
     []
   );
 
-    useEffect(() => {
-        if(props?.product) {
-            console.log(props.product);
-            setProductTitle(props.product?.title || "");
-            setProductType(props.product.product_type || "");
-            setProductDescription(props.product?.body_html || "");
-        }
-    },[])
+  useEffect(() => {
+    if (props?.product) {
+      console.log(props.product);
+      setProductTitle(props.product?.title || "");
+      setProductType(props.product.product_type || "");
+      setProductDescription(props.product?.body_html || "");
+    }
+  }, [])
 
   const imageUpload = !productImage && <DropZone.FileUpload />;
   const uploadedImage = productImage && (
-    <Stack>
+    <>
       <UploadedImage
         src={
           validImageTypes.includes(productImage.type)
@@ -104,7 +127,7 @@ export function UpdateProductModal(props) {
       <div>
         {productImage.name} <Caption>{productImage.size} bytes</Caption>
       </div>
-    </Stack>
+    </>
   );
   const errorMessage = !isFormValid && (
     <Stack>
@@ -161,6 +184,10 @@ export function UpdateProductModal(props) {
                   multiline={4}
                   autoComplete="off"
                 />
+                {props?.product?.images[0]?.src && (<ImageUploadContainer>
+                  <p>Current Image</p>
+                  <UploadedImage src={props?.product?.images[0].src} alt={props?.product?.images[0].id} />
+                </ImageUploadContainer>)}
                 <ImageUploadContainer>
                   <DropZone
                     allowMultiple={false}
