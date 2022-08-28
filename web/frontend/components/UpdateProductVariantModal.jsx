@@ -17,6 +17,7 @@ export function UpdateProductVariantModal(props) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [toastProps, setToastProps] = useState(emptyToastProps);
 
+  // Initial product variant data
   let variantData = {
     key: "",
     option1: "",
@@ -37,6 +38,7 @@ export function UpdateProductVariantModal(props) {
       setIsFormValid(true);
       const productId = props?.product?.id;
 
+      // Loop through variants and create or update them
       for (let i = 0; i < variants.length; ++i) {
         if (variants[i].id) {
           fetch(`/api/products/variants/update/${variants[i].id}`, {
@@ -80,7 +82,7 @@ export function UpdateProductVariantModal(props) {
   };
 
   const addVariant = () => {
-    variantData.key = Math.random().toString(16);
+    variantData.key = Math.random().toString(16); // Random string for key
     setVariants([...variants, variantData]);
   }
 
@@ -103,6 +105,7 @@ export function UpdateProductVariantModal(props) {
     setVariants([...newVariants]);
   }
 
+  // Update product variants data from props
   useEffect(() => {
     if (props?.product?.variants) {
       console.log(props?.product?.variants);

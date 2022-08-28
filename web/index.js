@@ -12,7 +12,10 @@ import productCreator from "./helpers/product-creator.js";
 import redirectToAuth from "./helpers/redirect-to-auth.js";
 import { BillingInterval } from "./helpers/ensure-billing.js";
 import { AppInstallations } from "./app_installations.js";
+
+// Load environment variables
 dotenv.config();
+
 const USE_ONLINE_TOKENS = false;
 
 const PORT = parseInt(process.env.BACKEND_PORT || process.env.PORT || "5000", 10);
@@ -119,6 +122,7 @@ export async function createServer(
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
 
+  // Get store email
   app.get("/api/store/email", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -128,13 +132,14 @@ export async function createServer(
     let status = 200;
     let error = null;
     let data = {};
+
     const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+
     try {
       data = await client.get({
         path: 'shop',
         query: { fields: "email" }
       });
-
     } catch (e) {
       console.log(`Failed to process shop/get: ${e.message}`);
       status = 500;
@@ -143,6 +148,7 @@ export async function createServer(
     res.status(status).send({ data, success: status === 200, error });
   });
 
+  // Get all products
   app.get("/api/products", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -165,6 +171,7 @@ export async function createServer(
     res.status(status).send({ data, success: status === 200, error });
   });
 
+  // Create new product
   app.post("/api/products/create", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -183,6 +190,7 @@ export async function createServer(
     };
 
     const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+
     try {
       response = await client.post({
         path: 'products',
@@ -197,7 +205,6 @@ export async function createServer(
           type: DataType.JSON
         });
       }
-
     } catch (e) {
       console.log(`Failed to process products/post: ${e.message}`);
       status = 500;
@@ -206,12 +213,14 @@ export async function createServer(
     res.status(status).send({ response, success: status === 200, error });
   });
 
+  // Update product by id
   app.put("/api/products/update/:id", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
       res,
       app.get("use-online-tokens")
     );
+
     let status = 200;
     let error = null;
     let response = {};
@@ -246,7 +255,6 @@ export async function createServer(
           });
         }
       }
-
     } catch (e) {
       console.log(`Failed to process products/post: ${e.message}`);
       status = 500;
@@ -255,6 +263,7 @@ export async function createServer(
     res.status(status).send({ response, success: status === 200, error });
   });
 
+  // Create new product variant
   app.post("/api/products/:productId/variants/create", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
@@ -270,6 +279,7 @@ export async function createServer(
     };
 
     const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+
     try {
       response = await client.post({
         path: `products/${req.params.productId}/variants`,
@@ -284,12 +294,14 @@ export async function createServer(
     res.status(status).send({ response, success: status === 200, error });
   });
 
+  // Update product variant by id
   app.put("/api/products/variants/update/:variantId", async (req, res) => {
     const session = await Shopify.Utils.loadCurrentSession(
       req,
       res,
       app.get("use-online-tokens")
     );
+
     let status = 200;
     let error = null;
     let response = {};
@@ -299,6 +311,7 @@ export async function createServer(
     };
 
     const client = new Shopify.Clients.Rest(session?.shop || "", session?.accessToken);
+
     try {
       response = await client.put({
         path: `variants/${req.params.variantId}`,
@@ -310,6 +323,7 @@ export async function createServer(
       status = 500;
       error = e.message;
     }
+    
     res.status(status).send({ response, success: status === 200, error });
   });
 

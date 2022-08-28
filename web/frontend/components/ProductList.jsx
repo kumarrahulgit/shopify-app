@@ -1,13 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useAuthenticatedFetch } from "../hooks";
 import styled from 'styled-components';
+import { useAuthenticatedFetch } from "../hooks";
 import { ImageMajor } from '@shopify/polaris-icons';
 import {
   Spinner,
   Modal,
   RadioButton
 } from '@shopify/polaris';
-
 
 const Container = styled.div`
   display: flex;
@@ -20,6 +19,7 @@ const FlexItem = styled.div`
   text-align: center;
   padding: 5rem;
 `
+
 const ProductCard = styled.div`
   padding: 0.5rem;
   border: 1px solid mediumseagreen;
@@ -56,6 +56,7 @@ export function ProductList(props) {
     [],
   );
 
+  // Update product data on product selection
   useEffect(() => {
     if (value) {
       setProduct(items.find(item => item.id === value));
@@ -71,7 +72,7 @@ export function ProductList(props) {
       primaryAction={{
         content: 'Select Product',
         onAction: () => props?.onSelection(product),
-        disabled: !Boolean(value)
+        disabled: !Boolean(value) // Make sure that a product is selected before moving onto next screen
       }}
       secondaryActions={[
         {

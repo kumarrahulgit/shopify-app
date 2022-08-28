@@ -43,6 +43,8 @@ export function UpdateProductModal(props) {
   const toastMarkup = toastProps.content && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
+
+  // Convert file to base 64 encoding
   const getBase64 = async (file) => {
     let reader = new FileReader();
     return new Promise((resolve, reject) => {
@@ -95,6 +97,7 @@ export function UpdateProductModal(props) {
       setIsSubmitting(false);
     }
   };
+
   const handleProductTitleChange = useCallback((newValue) => setProductTitle(newValue), []);
   const handleProductTypeChange = useCallback((value) => setProductType(value), []);
   const handleProductDescriptionChange = useCallback((newValue) => setProductDescription(newValue), []);
@@ -104,6 +107,7 @@ export function UpdateProductModal(props) {
     []
   );
 
+  // Update state with props data
   useEffect(() => {
     if (props?.product) {
       console.log(props.product);

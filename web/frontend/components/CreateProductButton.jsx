@@ -1,6 +1,6 @@
 import { useState, useCallback } from "react";
-import { Button, Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Caption } from "@shopify/polaris";
 import styled from 'styled-components';
+import { Button, Modal, DropZone, Stack, FormLayout, Form, TextField, Select, Caption } from "@shopify/polaris";
 import { NoteMinor } from '@shopify/polaris-icons';
 import { Toast } from "@shopify/app-bridge-react";
 import { useAuthenticatedFetch } from "../hooks";
@@ -54,6 +54,8 @@ export function CreateProductButton() {
   const toastMarkup = toastProps.content && (
     <Toast {...toastProps} onDismiss={() => setToastProps(emptyToastProps)} />
   );
+
+  // Convert file to base 64 encoding
   const getBase64 = async (file) => {
     let reader = new FileReader();
     return new Promise((resolve, reject) => {
@@ -78,6 +80,7 @@ export function CreateProductButton() {
 
     if (productTitle && productType) {
       setIsFormValid(true);
+
       fetch("/api/products/create", {
         method: "POST",
         body: JSON.stringify({
@@ -104,6 +107,7 @@ export function CreateProductButton() {
       setIsSubmitting(false);
     }
   };
+  
   const handleProductTitleChange = useCallback((newValue) => setProductTitle(newValue), []);
   const handleProductTypeChange = useCallback((value) => setProductType(value), []);
   const handleProductDescriptionChange = useCallback((newValue) => setProductDescription(newValue), []);

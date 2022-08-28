@@ -15,9 +15,10 @@ export const ProductVariant = (props) => {
     const handlePriceChange = (newPrice) => setVariantData({...variantData, price: newPrice});
 
     const handleBlur = () => {
-        props?.onDataChange(variantData);
+        props?.onDataChange(variantData);   // Callback for updating parent component's state
     }
 
+    // Update product variant data in parent component
     useEffect(() => {
         handleBlur();
     }, [props.variant]);
